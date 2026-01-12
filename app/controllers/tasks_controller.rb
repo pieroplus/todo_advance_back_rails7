@@ -1,5 +1,5 @@
 class TasksController < ApplicationController
-  before_action :select_task, only: [:update, :destroy, :update_status]
+  before_action :select_task, only: [:update, :destroy, :update_status, :duplicate]
   skip_before_action :verify_authenticity_token
 
   def index
@@ -7,8 +7,14 @@ class TasksController < ApplicationController
   end
 
   def create
-    @result = Task.create(task_params)
-    tasks_all
+    result = TaskService.new(params).create_task
+
+    if result.success?
+      @tasks = Task.all
+      render :all_tasks
+    else
+      render json: { errors: result.errors }, status: :unprocessable_entity
+    end
   end
 
   def update
@@ -26,10 +32,26 @@ class TasksController < ApplicationController
     tasks_all
   end
 
+  def duplicate
+    result = TaskService.new.duplicate_task(@task)
+
+    if result.success?
+      @task = result.value
+      render :duplicate, status: :created
+    else
+      render json: { errors: result.errors }, status: :unprocessable_entity
+    end
+  end
+
+  def report
+    @report = TaskReportService.generate_report
+    render :report
+  end
+
   private
 
   def task_params
-    params.permit(:name, :explanation, :status).merge(genre_id: params[:genreId], deadline_date: params[:deadlineDate])
+    params.permit(:name, :explanation, :status, :priority).merge(genre_id: params[:genreId], deadline_date: params[:deadlineDate])
   end
 
   def select_task

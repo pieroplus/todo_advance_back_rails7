@@ -1,0 +1,9 @@
+json.id @task.id
+json.name @task.name
+json.explanation @task.explanation
+json.deadlineDate @task.deadline_date
+json.status Task.statuses[@task.status]
+json.genreId @task.genre_id
+json.priority @task.priority
+json.createdAt @task.created_at
+json.updatedAt @task.updated_at
